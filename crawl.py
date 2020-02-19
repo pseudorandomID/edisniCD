@@ -51,6 +51,7 @@ class Gallery:
         class PostInfo:
             def __init__(self, tr):
                 self.num = tr.find("td", {"class":"gall_num"}).text
+                #self.num = tr['data-no']
                 self.title = tr.find("td", {"class":"gall_tit"}).find("a").text
                 self.replyCnt = getReplyCnt(tr.find("span", {"class":"reply_num"}))
                 self.url = "https://gall.dcinside.com" + tr.find("td", {"class":"gall_tit"}).find("a")["href"] 
@@ -74,4 +75,5 @@ class Gallery:
         trs = soup.find_all("tr", {"class":"us-post"})
         
         self.postNums = [(lambda x : x['data-no'])(tr) for tr in trs]
-        self.posts = {tr.find("td", {"class":"gall_num"}).text : PostInfo(tr) for tr in trs}
+        #self.posts = {tr.find("td", {"class":"gall_num"}).text : PostInfo(tr) for tr in trs}
+        self.posts = {tr['data-no'] : PostInfo(tr) for tr in trs}
