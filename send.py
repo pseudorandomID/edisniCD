@@ -20,12 +20,10 @@ if __name__=="__main__":
     dcDB = dbClient["dc"]
     postsCollection = dcDB["posts"]
 
-
     baseUrl = "https://api.telegram.org/" + botToken
 
     while True:
         postsUndone = postsCollection.find({"done":False})
-
         for post in postsUndone:
             data = {'chat_id' : chat_id}
             for image in post['images']:
@@ -33,16 +31,14 @@ if __name__=="__main__":
                     files = {'animation': open('images/' + image['name'], 'rb')}
                     sendGif = requests.post(baseUrl + "/sendAnimation", params=data, files=files)
                 else:
-                    files = {'photo': open('images/' + image['name'], 'rb')}
-                    sendImg = requests.post(baseUrl + "/sendPhoto", params=data, files=files)
-
+                    files = {'document': open('images/' + image['name'], 'rb')}
+                    sendImg = requests.post(baseUrl + "/sendDocument", params=data, files=files)
             
             text = ""
             text += post['galName'] + "\n"
             text += post['title'] + "\n"
             text += post['date'] + "\n"
             text += post['content']
-
             data['text'] = text
             sendMessage = requests.get(baseUrl + "/sendMessage", params=data)
 

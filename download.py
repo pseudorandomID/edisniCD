@@ -7,7 +7,7 @@ import argparse
 def parseArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('--g', help='Gallery ID')
-    parser.add_argument('--r', help='Recommends', type=int, default=1)
+    parser.add_argument('--r', help='Recommends', type=int, default=3)
     errMsg = "Please specify Gallery ID with --g option"
     args = parser.parse_args()
     return (lambda x: x if x.g else sys.exit(errMsg))(args)
