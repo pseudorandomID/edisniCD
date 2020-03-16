@@ -21,6 +21,7 @@ if __name__ == "__main__":
     postsCollection = dcDB["posts"]
 
     while True:
+        time.sleep(3)
         try:
             gal = Gallery(galId)
             postList = gal.posts
@@ -44,7 +45,6 @@ if __name__ == "__main__":
                     postsCollection.insert_one(document)
 
             print("Sleeping...")
-            time.sleep(3)
 
         except KeyboardInterrupt:
             sys.exit()

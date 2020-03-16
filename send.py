@@ -44,7 +44,7 @@ if __name__=="__main__":
             text += post['content']
 
             data['text'] = text
-            sendMessage = requests.get(apiBaseUrl + botToken + "/sendMessage", params=data)
+            sendMessage = requests.get(baseUrl + "/sendMessage", params=data)
 
             postsCollection.update_one({"num":post['num']}, {"$set":{"done":True}})
 
