@@ -1,29 +1,54 @@
 from dcinside import *
 import pymongo
+import time
+import sys
+import argparse
+
+def parseArgs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--g', help='Gallery ID')
+    parser.add_argument('--r', help='Recommends', type=int, default=1)
+    errMsg = "Please specify Gallery ID with --g option"
+    args = parser.parse_args()
+    return (lambda x: x if x.g else sys.exit(errMsg))(args)
 
 if __name__ == "__main__":
+    args = parseArgs()
+    galId, minRecommends = args.g, args.r
+
     dbClient = pymongo.MongoClient("mongodb://localhost:27017/")
     dcDB = dbClient["dc"]
     postsCollection = dcDB["posts"]
 
-    galId= "baseball_new8"
-    #pGal = Gallery(url=pGalUrl, session=s)
-    postList = PostList(galId).posts
+    while True:
+        try:
+            gal = Gallery(galId)
+            postList = gal.posts
 
-    for post in postList:
-        if post.hasImg and post.recommend >= 1 and postCollection.find_one({'num':post})['done'] == False:
-            postDetail = readPost(post)
+            for post in postList:
+                if (
+                    post.hasImg 
+                    and post.recommends >= minRecommends
+                    and postsCollection.find_one({'num':post.num}) == None
+                   ):
 
-            for image in postDetail.images:
-                image.download()
+                    postDetail = readPost(post)
 
-            insertData = {}
-            insertData['num'] = post
-            insertData['title'] = postDetail.title
-            insertData['date'] = postDetail.date
-            insertData['content'] = postDetail.content
-            #insertData['images'] = [image.name for image in postDetail.images]
-            insertData['images'] = [image.toDict() for image in postDetail.images]
-            insertData['done'] = False
+                    for image in postDetail.images:
+                        print("Downloading %s" %(image.name))
+                        image.download()
+                        print("complete!\n")
 
-            postsCollection.insert_one(insertData)
+                    document = postDetail.toDict()
+                    document['done'] = False
+                    postsCollection.insert_one(document)
+
+            print("Sleeping...")
+            time.sleep(3)
+
+        except KeyboardInterrupt:
+            sys.exit()
+
+        except Exception as e:
+            print(e.__doc__)
+            print(e)

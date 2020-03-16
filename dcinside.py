@@ -16,12 +16,12 @@ class Image:
         del response 
 
     def toDict(self):
-        dictImage = {}
-        dictImage['name'] = self.name
-        dictImage['url'] = self.url
-        dictImage['extension'] = self.extension
+        Dict = {}
+        Dict['name'] = self.name
+        Dict['url'] = self.url
+        Dict['extension'] = self.extension
 
-        return dictImage
+        return Dict
         
 
 class Post:
@@ -41,6 +41,8 @@ class Post:
         imgList = soup.find("ul", {"class":"appending_file"})
 
 
+        self.num = urlParams['no'][0]
+        self.galName = soup.find("div", {"class":"page_head"}).find("div", {"class":["fl", "clear"]}).text
         self.title = soup.find("span", {"class":"title_subject"}).text
         self.replyCnt = soup.find("span", {"class":"gall_comment"})
         self.url = url
@@ -48,29 +50,41 @@ class Post:
         self.ip = soup.find("span", {"class":"ip"})
         self.date = soup.find("span", {"class":"gall_date"}).text
         self.count = soup.find("span", {"class":"gall_count"})
-        self.recommend = soup.find("span", {"class":"gall_reply_num"})
+        self.recommends = soup.find("span", {"class":"gall_reply_num"})
         self.content = (lambda x : x.find("div", {"style":"overflow:hidden;"}).text if (x != None) else "")(viewBox)
         self.images = (lambda x : [Image(parsed_li) for parsed_li in x.findAll("li")] if (x != None) else [])(imgList)
+
+    def toDict(self):
+        Dict = {}
+        
+        Dict['galName'] = self.galName
+        Dict['num'] = self.num
+        Dict['title'] = self.title
+        Dict['date'] = self.date
+        Dict['content'] = self.content
+        Dict['images'] = [image.toDict() for image in self.images]
+
+        return Dict
 
 def readPost(post):
     return Post(post.url)
         
-class PostList:
-    def __init__(self, galId, page='1'):
-        class PostSummary:
-            def __init__(self, tr):
-                self.num = tr.find("td", {"class":"gall_num"}).text
-                self.title = tr.find("td", {"class":"gall_tit"}).find("a").text
-                #self.replyCnt = getReplyCnt(tr.find("span", {"class":"reply_num"}))
-                self.url = "https://gall.dcinside.com" + tr.find("td", {"class":"gall_tit"}).find("a")["href"] 
-                self.nick = tr.find("td", {"class":"gall_writer"})['data-nick']
-                self.uid = tr.find("td", {"class":"gall_writer"})['data-uid']
-                self.ip = tr.find("td", {"class":"gall_writer"})['data-ip']
-                self.date = tr.find("td", {"class":"gall_date"})['title']
-                self.count = tr.find("td", {"class":"gall_count"}).text
-                self.recommend = int(tr.find("td", {"class":"gall_recommend"}).text)
-                self.hasImg = (lambda x : True if (tr.find("em", {"class":"icon_pic"}) != None) else False)(tr)
+class PostSummary:
+    def __init__(self, tr):
+        self.num = tr.find("td", {"class":"gall_num"}).text
+        self.title = tr.find("td", {"class":"gall_tit"}).find("a").text
+        #self.replyCnt = getReplyCnt(tr.find("span", {"class":"reply_num"}))
+        self.url = "https://gall.dcinside.com" + tr.find("td", {"class":"gall_tit"}).find("a")["href"] 
+        self.nick = tr.find("td", {"class":"gall_writer"})['data-nick']
+        self.uid = tr.find("td", {"class":"gall_writer"})['data-uid']
+        self.ip = tr.find("td", {"class":"gall_writer"})['data-ip']
+        self.date = tr.find("td", {"class":"gall_date"})['title']
+        self.count = tr.find("td", {"class":"gall_count"}).text
+        self.recommends = int(tr.find("td", {"class":"gall_recommend"}).text)
+        self.hasImg = (lambda x : True if (tr.find("em", {"class":"icon_pic"}) != None) else False)(tr)
 
+class Gallery:
+    def __init__(self, galId, page='1'):
 
         s = requests.Session()
         galUrl = "https://gall.dcinside.com/board/lists/?id=" + galId + "&page=" + page
@@ -78,6 +92,5 @@ class PostList:
         soup = bs4.BeautifulSoup(galResponse.text, 'html.parser')
         posts = soup.find_all("tr", {"class":"us-post"})
         
-        #self.postNums = [(lambda x : x['data-no'])(post) for post in posts]
-        #self.posts = {post['data-no'] : PostSummary(post) for post in posts}
+        self.galName = soup.find("div", {"class":"page_head"}).find("div", {"class":["fl", "clear"]}).text
         self.posts = {PostSummary(post) for post in posts}
