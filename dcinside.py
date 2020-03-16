@@ -14,6 +14,14 @@ class Image:
         with open("images/" + self.name, 'wb') as imgFile:
             imgFile.write(response.content)
         del response 
+
+    def toDict(self):
+        dictImage = {}
+        dictImage['name'] = self.name
+        dictImage['url'] = self.url
+        dictImage['extension'] = self.extension
+
+        return dictImage
         
 
 class Post:
@@ -48,7 +56,7 @@ def readPost(post):
     return Post(post.url)
         
 class PostList:
-    def __init__(self, galId):
+    def __init__(self, galId, page='1'):
         class PostSummary:
             def __init__(self, tr):
                 self.num = tr.find("td", {"class":"gall_num"}).text
@@ -65,7 +73,7 @@ class PostList:
 
 
         s = requests.Session()
-        galUrl = "https://gall.dcinside.com/board/lists/?id=" + galId
+        galUrl = "https://gall.dcinside.com/board/lists/?id=" + galId + "&page=" + page
         galResponse = s.get(galUrl, headers = dcHeaders.Headers.galHeaders)
         soup = bs4.BeautifulSoup(galResponse.text, 'html.parser')
         posts = soup.find_all("tr", {"class":"us-post"})

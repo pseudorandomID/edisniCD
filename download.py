@@ -11,19 +11,19 @@ if __name__ == "__main__":
     postList = PostList(galId).posts
 
     for post in postList:
-        if post.hasImg and post.recommend >= 1:
+        if post.hasImg and post.recommend >= 1 and postCollection.find_one({'num':post})['done'] == False:
             postDetail = readPost(post)
 
             for image in postDetail.images:
                 image.download()
 
-
             insertData = {}
+            insertData['num'] = post
             insertData['title'] = postDetail.title
             insertData['date'] = postDetail.date
             insertData['content'] = postDetail.content
-            insertData['images'] = [image.name for image in postDetail.images]
+            #insertData['images'] = [image.name for image in postDetail.images]
+            insertData['images'] = [image.toDict() for image in postDetail.images]
             insertData['done'] = False
-            print(insertData)
-            print("dd")
+
             postsCollection.insert_one(insertData)
